@@ -1,0 +1,153 @@
+#aleksi
+def hae_maan_iso_koodi(nimi):
+    sql = 'SELECT iso_country FROM country WHERE name = %s'
+    cursor = yhteys.cursor(dictionary=True)
+    cursor.execute(sql, (nimi,))
+    tulos = cursor.fetchone()
+    cursor.close()
+    if tulos:
+        return tulos["iso_country"]
+
+#aleksi
+def hae_esineet():
+    cursor = yhteys.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM item")
+    tulos = cursor.fetchall()
+    cursor.close()
+    return tulos
+
+#aleksi
+def hae_maan_paakentta(maa):
+    sql = 'SELECT airport.ident FROM airport WHERE iso_country = %s ORDER BY type = "large_airport" DESC LIMIT 1'
+    cursor = yhteys.cursor()
+    cursor.execute(sql, (maa,))
+    tulos = cursor.fetchone()
+    cursor.close()
+    return tulos[0] if tulos else None
+
+#laurin ja aleksin
+def paivita_peli(game_id, location, co2_consumed, current_item, attempts, difficulty):
+    sql = 'UPDATE game SET location=%s, co2_consumed=%s, current_item=%s, attempts=%s, difficulty=%s WHERE id=%s'
+    cursor = yhteys.cursor()
+    cursor.execute(sql, (location, co2_consumed, current_item, attempts, difficulty, game_id))
+    yhteys.commit()
+    cursor.close()
+
+#aleksin
+def anna_vihje(esine, yritykset):
+    if yritykset == 0:
+        return esine["vihje1"]
+    elif yritykset == 1:
+        return esine["vihje2"]
+    else:
+        return esine["vihje3"]
+
+#aleksin
+def tarkista_maa(pelaajan_maa, esine):
+    return pelaajan_maa == esine["iso_country"]
+#aleksin
+def tarkista_esine(game_id, pelaajan_maa, esineet):
+    peli = hae_peli(game_id)
+    indeksi = peli["current_item"]
+    yritykset = peli["attempts"]
+    esine = esineet[indeksi]
+
+    if tarkista_maa(pelaajan_maa, esine):
+        if onko_esine_jo_pelaajalla(game_id, esine["id"]):
+            print("Olet saanut esineen täältä jo aiemmin.")
+            return "jo_saatu"
+
+        print(f"Löysit esineen: {esine['nimi']}")
+
+        if esine["nimi"] in tarina_funktiot:
+            for rivi in tarina_funktiot[esine["nimi"]]():
+                print(rivi)
+
+        lisaa_esine_pelaajalle(game_id, esine["id"])
+        paivita_peli(game_id, peli["location"], peli["co2_consumed"], indeksi + 1, 0, peli["difficulty"])
+        return "loydetty"
+
+    else:
+        print("Lensit väärään maahan, TOLLO!")
+        print("Vihje:", anna_vihje(esine, yritykset))
+        yritykset += 1
+        paivita_peli(game_id, peli["location"], peli["co2_consumed"], indeksi, yritykset, peli["difficulty"])
+        return "vaarin"
+
+#yhdessä
+def komentorivipeli():
+    nimi = input("Anna pelaajan nimi: ")
+    vanha_peli = hae_pelaajan_peli(nimi)
+
+    if vanha_peli:
+        print(f"Löydettiin tallennettu peli pelaajalle {nimi}.")
+        print(f"Nykyinen maa: {vanha_peli['location']}")
+        print(f"CO2-kulutus: {vanha_peli['co2_consumed']} / {vanha_peli['co2_budget']}")
+        print(f"Löydettyjä mummon esineitä: {vanha_peli['current_item']}")
+        print(f"Vaikeustaso: {vanha_peli['difficulty']}")
+        jatka = input("Haluatko jatkaa tallennettua peliä? (KYLLÄ/EN): ").upper()
+
+        if jatka == "KYLLÄ":
+            game_id = vanha_peli["id"]
+            print(f"Peli jatkuu! Olet kuluttanut CO2:sta {vanha_peli['co2_consumed']}. Muista, että budjetti on 5000!")
+        else:
+            for rivi in Tarinat.johdanto():
+                print(rivi)
+            print("Peli alkaa! CO2-budjetti: 5000")
+            aloitus = "EFHK"
+            difficulty = input("Valitse vaikeustaso (HELPPO/KESKIVAIKEA/VAIKEA): ").upper()
+            resetoi_peli(vanha_peli["id"], aloitus, difficulty)
+            game_id = vanha_peli["id"]
+    else:
+        for rivi in Tarinat.johdanto():
+            print(rivi)
+        print("Peli alkaa! CO2-budjetti: 5000")
+        aloitus = "EFHK"
+        difficulty = input("Valitse vaikeustaso (HELPPO/KESKIVAIKEA/VAIKEA): ").upper()
+        game_id = luo_peli(nimi, aloitus, difficulty)
+
+    esineet = hae_esineet()
+    peli_ohi = False
+
+    while peli_ohi is False:
+        peli_tila = hae_peli(game_id)
+
+        if peli_tila["current_item"] >= len(esineet):
+            print("Onneksi olkoon, olet löytänyt kaikki mummon hävittäneet esineet. Mummosi on sinulle ikuisesti kiitollinen.")
+            peli_ohi = True
+            continue
+
+        esine = esineet[peli_tila["current_item"]]
+        print("Vihje:", anna_vihje(esine, peli_tila["attempts"]))
+
+        maan_nimi = input("Mihin maahan haluat lentää? ")
+
+        if maan_nimi == "lopeta":
+            print("Lopetit pelin. Pelisi on tallennettu.")
+            peli_ohi = True
+            continue
+
+        pelaajan_maa = hae_maan_iso_koodi(maan_nimi)
+
+        if not pelaajan_maa:
+            print("Tuntematon maa. Syötä haluamasi maa uudelleen.")
+            continue
+
+        tila = lenna(game_id, pelaajan_maa)
+
+        if tila["status"] == "game_over":
+            print("Peli loppui, koska ylitit mummon antaman CO2-budjetin. Mummo on nyt pettynyt sinuun.")
+            peli_ohi = True
+            continue
+
+        tarkista_esine(game_id, pelaajan_maa, esineet)
+
+    esineet = hae_pelaajan_esineet(game_id)
+
+    print("Löysit nämä esineet:")
+    for e in esineet:
+        print("-", e["nimi"])
+
+
+if __name__ == "__main__":
+    komentorivipeli()
