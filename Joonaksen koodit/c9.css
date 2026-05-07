@@ -1,0 +1,56 @@
+body{
+    background-color:deepskyblue;
+    font-family: Georgia;
+}
+
+#kortti{
+    width: 0%;
+    background-color: #a1bff6;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-around;
+    ;
+}
+
+
+.grid-container{
+    display:grid;
+    grid-template-columns: 100px 100px 100px;
+    grid-template-rows:100px 100px 100px;
+    gap: 1rem;
+    width:50%;
+    margin:auto;
+    justify-content:center;
+
+
+
+}
+
+.item{
+    background-color: aliceblue;
+    border-color: deepskyblue;
+    padding: 1rem;
+      display: flex;
+  justify-content: center;
+  align-items: center;
+    border-radius: 5px;
+}
+
+.item:hover{
+background-color: #20c584;
+}
+
+#h{
+    width: 50%;
+    margin: auto;
+
+}
+
+h1{
+    width:40%;
+       margin-right: 190px;
+  margin-left: auto;
+    padding:1rem;
+    justify-content: center;
+}
+
