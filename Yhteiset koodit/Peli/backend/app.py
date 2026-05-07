@@ -7,7 +7,7 @@ import Tarinat
 
 app = Flask(__name__)
 CORS(app)
-
+#laurin
 def muodosta_alkutarina():
     return {
         "otsikko": "Mummon viesti",
@@ -15,7 +15,7 @@ def muodosta_alkutarina():
         "kuva": ""
     }
 
-
+#laurin
 def muodosta_voittotarina():
     return {
         "otsikko": "Voitit pelin!",
