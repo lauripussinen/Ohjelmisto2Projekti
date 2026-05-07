@@ -21,12 +21,50 @@ if (data.item_status === "loydetty") {
 }
 
 //2.
-function naytaTarina(tarina) {
-  if (!tarina || !tarina.teksti) {
+function naytaTarinat(tarinat) {
+  tarinaJono = tarinat.filter(function(tarina) {
+    return tarina && tarina.teksti;
+  });
+
+  naytaSeuraavaTarina();
+}
+
+function naytaSeuraavaTarina() {
+  if (tarinaJono.length === 0) {
+    document.getElementById("tarina-overlay").style.display = "none";
     return;
   }
 
-  document.getElementById("tarina-otsikko").textContent = tarina.otsikko || "Löysit esineen";
+  const tarina = tarinaJono.shift();
+  naytaTarina(tarina);
+}
+
+function naytaTarina(tarina) {
+  if (tarina === null) {
+    return;
+  }
+
+  if (tarina === undefined) {
+    return;
+  }
+
+  if (tarina.teksti === null) {
+    return;
+  }
+
+  if (tarina.teksti === undefined) {
+    return;
+  }
+
+  if (tarina.teksti === "") {
+    return;
+  }
+
+  if (tarina.otsikko) {
+    document.getElementById("tarina-otsikko").textContent = tarina.otsikko;
+  } else {
+    document.getElementById("tarina-otsikko").textContent = "Löysit esineen";
+  }
 
   document.getElementById("tarina-teksti").textContent = tarina.teksti;
 
@@ -44,5 +82,5 @@ function naytaTarina(tarina) {
 }
 
 function suljeTarina() {
-  document.getElementById("tarina-overlay").style.display = "none";
+  naytaSeuraavaTarina();
 }
