@@ -1,18 +1,18 @@
-# 1.
+# 1. Luodaan aluksi uusi tietokanta
 CREATE DATABASE ohjelmistopeli;
 USE ohjelmistopeli;
 
-# 2.
+# 2. Tuodaan flight_gamen tiedot tietokantaan
 SOURCE C:\o1\lp1.sql;
 
-# 3.
+# 3. Poistetaan tietokannasta taulut, joita ei tarvita
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS game;
 DROP TABLE IF EXISTS goal;
 DROP TABLE IF EXISTS goal_reached;
 SET FOREIGN_KEY_CHECKS = 1;
 
-# 4. Luo uusi game-taulu
+# 4. Luodaan uusi game-taulu
 CREATE TABLE game (
     id INT AUTO_INCREMENT PRIMARY KEY,
     screen_name VARCHAR(40) NOT NULL UNIQUE,
@@ -24,7 +24,7 @@ CREATE TABLE game (
     difficulty VARCHAR(40) NOT NULL
 ) CHARSET=latin1;
 
-# 5. Luo uusi item-taulu ja luodaan yhteys country tauluun
+# 5. Luodaan uusi item-taulu ja luodaan yhteys country taulun välille
 CREATE TABLE item (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nimi VARCHAR(100),
@@ -36,7 +36,7 @@ CREATE TABLE item (
         REFERENCES country(iso_country)
 ) CHARSET=latin1;
 
-# 6. Lisää esineet item-tauluun
+# 6. Lisätään esineiden tiedot item-tauluun
 INSERT INTO item (nimi, iso_country, vihje1, vihje2, vihje3) VALUES
 ('Kultainen teelusikka', 'SE',
  'Kultainen teelusikka sijaitsee maassa, joka tunnetaan kolmesta kruunusta.',
@@ -63,7 +63,7 @@ INSERT INTO item (nimi, iso_country, vihje1, vihje2, vihje3) VALUES
  'Kirje sijaitsee maassa, joka on hyvin köyhä.',
  'Kirje sijaitsee maassa, mistä Dracula on kotoisin.');
 
-# 7. Luo game_items-taulu ja luodaan yhteys sekä game ja item tauluun
+# 7. Luodaan game_items-taulu ja luodaan yhteys sekä game ja item taulun välille
 CREATE TABLE game_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     game_id INT NOT NULL,
@@ -73,6 +73,6 @@ CREATE TABLE game_items (
     CONSTRAINT unique_game_item UNIQUE (game_id, item_id)
 ) CHARSET=latin1;
 
-# 8. Tietokanta on luotu onnistuneesti ja kaikki taulut ovat toisiinsa yhteydessä
+# 8. Tietokanta on luotu onnistuneesti. Kaikki taulut ovat toisiinsa yhteydessä
 #Tietokantaan tallentuu missä maassa pelaaja sijaitsee ja mitä esineitä hän on saanut
 #pelin aikana. Itemit ovat myös yhteydessä tiettyyn maahan country-taulussa
